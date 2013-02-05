@@ -24,6 +24,11 @@ basicFont = pygame.font.SysFont(None, 36)
 bgrImg = pygame.image.load('tree.png').convert()
 bgrRect = bgrImg.get_rect()
 
+# set up sound
+pickupSound = pygame.mixer.Sound('pick.wav')
+fallenSound = pygame.mixer.Sound('fall.wav')
+soundIsOn = True
+
 #set up score and fallen cherries
 score = 0
 fallen = 0
@@ -87,10 +92,9 @@ while True:
                 moveUp = False
             if event.key == K_DOWN or event.key == ord('s'):
                 moveDown = False
-            if event.key == ord('x'):
-                player.top = random.randint(0, WINDOWHEIGHT - player.height)
-                player.left = random.randint(0, WINDOWWIDTH - player.width)
-                
+            if event.key == ord('m'):
+                soundIsOn = not soundIsOn
+
     # adding new fruit
     fruitCounter += 1
     if fruitCounter >= NEWFRUIT:
@@ -119,6 +123,8 @@ while True:
         if player.colliderect(fruit["rect"]):
             fruits.remove(fruit)
             score += 1
+            if soundIsOn:
+                pickupSound.play()
 
     # check if fruit will start falling down
     for fruit in fruits:
@@ -135,6 +141,8 @@ while True:
             if fruit['rect'].bottom > WINDOWHEIGHT:
                 fruits.remove(fruit)
                 fallen += 1
+                if soundIsOn:
+                    fallenSound.play()
 
     # draw the fruits
     for fruit in fruits:
