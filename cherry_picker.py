@@ -2,9 +2,34 @@ import pygame, sys, random
 from pygame.locals import *
 
 
+def terminate():
+    # terminate the game
+    pygame.quit()
+    sys.exit()
+
+def waitForPlayerToPressKey():
+    # waiting for pressing any key
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                terminate()
+            if event.type == KEYDOWN:
+                if event.key == K_ESCAPE: # pressing escape quits
+                    terminate()
+                return
+
+def drawText(text, font, surface, x, y):
+    textobj = font.render(text, True, WHITE, AZURE)
+    textrect = textobj.get_rect()
+    textrect.topleft = (x, y)
+    surface.blit(textobj, textrect)
+                
+                
 # set up pygame
 pygame.init()
 mainClock = pygame.time.Clock()
+pygame.mouse.set_visible(False)
+mouseIsOn = False
 
 # set up the window
 WINDOWWIDTH = 500
@@ -18,10 +43,13 @@ WHITE = (255, 255, 255)
 AZURE = (0, 153, 255)
 
 #set up fonts
-basicFont = pygame.font.SysFont(None, 36)
+basicFont = pygame.font.SysFont(None, 20)
+headerFont = pygame.font.SysFont(None, 54)
+scoreFont = pygame.font.SysFont(None, 36)
 
 # set up background
 bgrImg = pygame.image.load('tree.png').convert()
+menuBgrImg = pygame.image.load('tree_blur.png').convert()
 bgrRect = bgrImg.get_rect()
 
 # set up sound
@@ -59,15 +87,29 @@ MOVESPEED = 4
 FRUIT_FALL_CHANCE = 300
 FALLINGSPEED = 3
 
+# show the "Start" screen
+windowSurface.blit(menuBgrImg, bgrRect)
+elipse = pygame.draw.ellipse(windowSurface, AZURE, (WINDOWWIDTH/2 -175, WINDOWHEIGHT / 2 - 150, 350, 250), 0)
+drawText('The', headerFont, windowSurface, elipse.centerx - 30, elipse.centery - 110)
+drawText('Cherry Picker', headerFont, windowSurface, elipse.centerx - 120, elipse.centery - 60)
+drawText('Press any key to start.', basicFont, windowSurface, elipse.centerx - 140, elipse.centery)
+drawText('Use arrow to move', basicFont, windowSurface, elipse.centerx - 120, elipse.centery + 30)
+drawText('TAB to turn off sounds.', basicFont, windowSurface, elipse.centerx - 100, elipse.centery + 60)
+fox = pygame.Rect(elipse.centerx + 60, elipse.centery - 20, 80, 80)
+windowSurface.blit(playerImg, fox)
+pygame.display.update()
+waitForPlayerToPressKey()
+
 # running the game loop
 while True:
     # check for events
     for event in pygame.event.get():
         if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
+            terminate()
         if event.type == KEYDOWN:
             # change the keyboard variables
+            if event.key == K_ESCAPE:
+                terminate()
             if event.key == K_LEFT or event.key == ord('a'):
                 moveRight = False
                 moveLeft = True
@@ -81,9 +123,6 @@ while True:
                 moveUp = False
                 moveDown = True
         if event.type == KEYUP:
-            if event.key == K_ESCAPE:
-                pygame.quit()
-                sys.exit()
             if event.key == K_LEFT or event.key == ord('a'):
                 moveLeft = False
             if event.key == K_RIGHT or event.key == ord('d'):
@@ -92,8 +131,13 @@ while True:
                 moveUp = False
             if event.key == K_DOWN or event.key == ord('s'):
                 moveDown = False
-            if event.key == ord('m'):
+            if event.key == K_TAB:
                 soundIsOn = not soundIsOn
+            if event.key == ord('m'):
+                mouseIsOn = not mouseIsOn
+        if event.type == MOUSEMOTION and mouseIsOn:
+            # if the mouse moves, and mouse is enabled, move the player where the cursor is
+            player.move_ip(event.pos[0] - player.centerx, event.pos[1] - player.centery)
 
     # adding new fruit
     fruitCounter += 1
@@ -149,11 +193,11 @@ while True:
         windowSurface.blit(fruitImg, fruit["rect"])
 
     # draw score and fallens
-    scoreText = basicFont.render('Total score: ' + str(score), True, WHITE, AZURE)
+    scoreText = scoreFont.render('Total score: ' + str(score), True, WHITE, AZURE)
     scoreRect = scoreText.get_rect()
     scoreRect.left = 0
     scoreRect.top = 0
-    fallenText = basicFont.render('Fallen cherries: ' + str(fallen), True, WHITE, AZURE)
+    fallenText = scoreFont.render('Fallen cherries: ' + str(fallen), True, WHITE, AZURE)
     fallenRect = fallenText.get_rect()
     fallenRect.right = WINDOWWIDTH
     fallenRect.top = 0
