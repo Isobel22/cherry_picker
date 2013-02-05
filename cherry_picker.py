@@ -32,14 +32,15 @@ fallen = 0
 fruitCounter = 0
 NEWFRUIT = 60
 FRUITSIZE = 20
+INICIALFRUIT = 5
 player = pygame.Rect(WINDOWWIDTH / 2, WINDOWHEIGHT - 50, 50, 50)
 playerImg = pygame.image.load('fox.png')
 playerStretchedImg = pygame.transform.scale(playerImg, (50, 50))
 fruits = []
-for i in range(5):
-    newFruit = {"rect": pygame.Rect(random.randint(0 + WINDOWWIDTH / 50, WINDOWWIDTH - FRUITSIZE - WINDOWWIDTH / 50), random.randint(30, WINDOWHEIGHT * 0.6 ), FRUITSIZE, FRUITSIZE), "falling": False}
+for i in range(INICIALFRUIT):
+    newFruit = {"rect": pygame.Rect(random.randint(0 + WINDOWWIDTH / 50, WINDOWWIDTH - FRUITSIZE - WINDOWWIDTH / 50), random.randint(30, WINDOWHEIGHT * 0.6), FRUITSIZE, FRUITSIZE), "falling": False}
     fruits.append(newFruit)
-fruitImg = pygame.image.load('cherry2.png') 
+fruitImg = pygame.image.load('cherry2.png')
 
 # set up movement variables
 moveLeft = False
@@ -47,13 +48,13 @@ moveRight = False
 moveUp = False
 moveDown = False
 
-# SET UP GAME SPEED
+# set up game speed and difficulcy
 FPS = 80
 MOVESPEED = 4
 FRUIT_FALL_CHANCE = 300
 FALLINGSPEED = 3
 
-# run the game loop
+# running the game loop
 while True:
     # check for events
     for event in pygame.event.get():
@@ -89,17 +90,17 @@ while True:
             if event.key == ord('x'):
                 player.top = random.randint(0, WINDOWHEIGHT - player.height)
                 player.left = random.randint(0, WINDOWWIDTH - player.width)
-
+                
+    # adding new fruit
     fruitCounter += 1
     if fruitCounter >= NEWFRUIT:
-        # add new fruit
         fruitCounter = 0
-        newFruit = {"rect": pygame.Rect(random.randint(0 + WINDOWWIDTH / 50, WINDOWWIDTH - FRUITSIZE - WINDOWWIDTH / 50), random.randint(30, WINDOWHEIGHT * 0.6 ), FRUITSIZE, FRUITSIZE), "falling": False}
+        newFruit = {"rect": pygame.Rect(random.randint(0 + WINDOWWIDTH / 50, WINDOWWIDTH - FRUITSIZE - WINDOWWIDTH / 50), random.randint(30, WINDOWHEIGHT * 0.6), FRUITSIZE, FRUITSIZE), "falling": False}
         fruits.append(newFruit)
-        
-    # windowSurface background
+ 
+    # draw windowSurface background image
     windowSurface.blit(bgrImg, bgrRect)
-    
+
     # move the player
     if moveDown and player.bottom < WINDOWHEIGHT:
         player.top += MOVESPEED
@@ -113,34 +114,32 @@ while True:
     # draw the player onto the surface
     windowSurface.blit(playerStretchedImg, player)
 
-    
-    # check if the player has intersected with any fruit squares.
+    # check if the player has collided with any fruit.
     for fruit in fruits[:]:
         if player.colliderect(fruit["rect"]):
             fruits.remove(fruit)
             score += 1
-    
-    # check if fruit will fall down
+
+    # check if fruit will start falling down
     for fruit in fruits:
         if random.randint(0, FRUIT_FALL_CHANCE) == 1:
             fruit["falling"] = True
-              
-    # fruit is falling
+
+    # moving down of falling fruit
     for fruit in fruits:
-        if fruit["falling"] == True:
+        if fruit["falling"]:
             fruit["rect"].top += FALLINGSPEED
-            
-    # Delete fruit that have fallen to the ground.
+
+    # delete fruit that have fallen to the ground
         for fruit in fruits[:]:
             if fruit['rect'].bottom > WINDOWHEIGHT:
                 fruits.remove(fruit)
                 fallen += 1
 
-    # draw the fruit
+    # draw the fruits
     for fruit in fruits:
         windowSurface.blit(fruitImg, fruit["rect"])
 
-   
     # draw score and fallens
     scoreText = basicFont.render('Total score: ' + str(score), True, WHITE, AZURE)
     scoreRect = scoreText.get_rect()
@@ -152,7 +151,7 @@ while True:
     fallenRect.top = 0
     windowSurface.blit(scoreText, scoreRect)
     windowSurface.blit(fallenText, fallenRect)
-    
-    # draw the window onto the screen
+
+    # update the screen at the end of itineration
     pygame.display.update()
     mainClock.tick(FPS)
